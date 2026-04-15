@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Link, useLocation } from 'react-router-dom';
 import './ProductList.css';
@@ -6,7 +6,7 @@ import './ProductList.css';
 const ProductList = () => {
   const location = useLocation();
 
-  const API = process.env.REACT_APP_API_URL; // ✅ Render backend URL
+  const API = process.env.REACT_APP_API_URL;
 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -15,6 +15,43 @@ const ProductList = () => {
   const [sortOption, setSortOption] = useState('');
   const [loading, setLoading] = useState(true);
 
+  // ✅ GET PRODUCTS
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API}/products`);
+      setProducts(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [API]);
+
+  // ✅ SEARCH PRODUCTS
+  const searchProducts = useCallback(async (query) => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API}/products/search/${query}`);
+      setProducts(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [API]);
+
+  // ✅ GET CATEGORIES
+  const fetchCategories = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API}/categories`);
+      setCategories(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [API]);
+
+  // ✅ INITIAL LOAD
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const query = params.get('search') || '';
@@ -27,41 +64,15 @@ const ProductList = () => {
     }
 
     fetchCategories();
-  }, [location.search]);
+  }, [location.search, fetchProducts, searchProducts, fetchCategories]);
 
-  // ✅ GET PRODUCTS
-  const fetchProducts = async () => {
-    setLoading(true);
+  // ✅ ADD TO CART
+  const addToCart = async (productId) => {
     try {
-      const response = await axios.get(`${API}/products`);
-      setProducts(response.data);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ✅ SEARCH PRODUCTS
-  const searchProducts = async (query) => {
-    setLoading(true);
-    try {
-      const response = await axios.get(`${API}/products/search/${query}`);
-      setProducts(response.data);
-    } catch (error) {
-      console.error('Error searching products:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ✅ GET CATEGORIES
-  const fetchCategories = async () => {
-    try {
-      const response = await axios.get(`${API}/categories`);
-      setCategories(response.data);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
+      await axios.post(`${API}/cart`, { product_id: productId, quantity: 1 });
+      alert('Added to cart!');
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -70,20 +81,8 @@ const ProductList = () => {
     try {
       await axios.post(`${API}/wishlist`, { product_id: productId });
       alert('Added to wishlist!');
-      window.dispatchEvent(new Event('wishlistUpdated'));
-    } catch (error) {
-      console.error('Error adding to wishlist:', error);
-    }
-  };
-
-  // ✅ ADD TO CART
-  const addToCart = async (productId) => {
-    try {
-      await axios.post(`${API}/cart`, { product_id: productId, quantity: 1 });
-      alert('Added to cart!');
-      window.dispatchEvent(new Event('cartUpdated'));
-    } catch (error) {
-      console.error('Error adding to cart:', error);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -102,131 +101,103 @@ const ProductList = () => {
   });
 
   const filteredProducts = selectedCategory
-    ? sortedProducts.filter(product => product.category === selectedCategory)
+    ? sortedProducts.filter(p => p.category === selectedCategory)
     : sortedProducts;
 
   return (
     <div className="product-list">
 
-      <section className="hero-banner">
-        <div className="hero-copy">
-          <p className="hero-tag">Flipkart Style E-commerce</p>
-          <h1>Latest deals on top brands</h1>
-          <p>Discover electronics, fashion, home essentials and more with fast delivery.</p>
-        </div>
-      </section>
+      <aside className="category-sidebar">
+        <h2>Categories</h2>
 
-      <div className="main-content">
+        <button onClick={() => setSelectedCategory('')}>All</button>
 
-        <aside className="category-sidebar">
-          <h2>Categories</h2>
+        {categories.map((cat, i) => (
+          <button key={i} onClick={() => setSelectedCategory(cat)}>
+            {cat}
+          </button>
+        ))}
+      </aside>
+
+      <div className="product-main">
+
+        <div className="filters">
+          <input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) =>
+              e.key === 'Enter' &&
+              (searchQuery ? searchProducts(searchQuery) : fetchProducts())
+            }
+          />
+
           <button
-            className={selectedCategory === '' ? 'active' : ''}
-            onClick={() => setSelectedCategory('')}
+            onClick={() =>
+              searchQuery ? searchProducts(searchQuery) : fetchProducts()
+            }
           >
-            All
+            Search
           </button>
 
-          {categories.map((category, i) => (
-            <button
-              key={i}
-              className={selectedCategory === category ? 'active' : ''}
-              onClick={() => setSelectedCategory(category)}
-            >
-              {category}
-            </button>
-          ))}
-        </aside>
+          <select
+            value={sortOption}
+            onChange={(e) => setSortOption(e.target.value)}
+          >
+            <option value="">Sort</option>
+            <option value="price-asc">Low to High</option>
+            <option value="price-desc">High to Low</option>
+            <option value="rating-desc">Top Rated</option>
+          </select>
 
-        <div className="product-main">
-
-          <div className="filters">
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) =>
-                e.key === 'Enter' &&
-                (searchQuery.trim() ? searchProducts(searchQuery) : fetchProducts())
-              }
-            />
-
-            <button
-              onClick={() =>
-                searchQuery.trim() ? searchProducts(searchQuery) : fetchProducts()
-              }
-            >
-              Search
-            </button>
-
-            <select value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
-              <option value="">Sort by</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-              <option value="rating-desc">Top Rated</option>
-            </select>
-
-            <button className="clear-btn" onClick={clearFilters}>
-              Clear
-            </button>
-          </div>
-
-          <div className="results-count">
-            Showing {filteredProducts.length} products
-          </div>
-
-          {loading ? (
-            <div className="loading">Loading products...</div>
-          ) : (
-            <div className="products-grid">
-
-              {filteredProducts.map(product => {
-                let images = [];
-
-                try {
-                  images =
-                    typeof product.image_urls === 'string'
-                      ? JSON.parse(product.image_urls)
-                      : product.image_urls || [];
-                } catch (e) {
-                  images = [];
-                }
-
-                return (
-                  <div key={product.id} className="product-card">
-
-                    <img
-                      src={images[0] || 'https://via.placeholder.com/200'}
-                      alt={product.name}
-                    />
-
-                    <div className="product-meta">
-                      <p className="brand">{product.brand}</p>
-                      <h3>{product.name}</h3>
-                      <p className="price">${product.price}</p>
-                    </div>
-
-                    <div className="product-actions">
-                      <Link to={`/product/${product.id}`}>View Details</Link>
-
-                      <button onClick={() => addToCart(product.id)}>
-                        Add to Cart
-                      </button>
-
-                      <button onClick={() => addToWishlist(product.id)}>
-                        Wishlist
-                      </button>
-                    </div>
-
-                  </div>
-                );
-              })}
-
-            </div>
-          )}
-
+          <button onClick={clearFilters}>Clear</button>
         </div>
+
+        <div className="results-count">
+          Showing {filteredProducts.length} products
+        </div>
+
+        {loading ? (
+          <div>Loading...</div>
+        ) : (
+          <div className="products-grid">
+
+            {filteredProducts.map(product => {
+              let images = [];
+
+              try {
+                images =
+                  typeof product.image_urls === 'string'
+                    ? JSON.parse(product.image_urls)
+                    : product.image_urls || [];
+              } catch {
+                images = [];
+              }
+
+              return (
+                <div key={product.id} className="product-card">
+
+                  <img
+                    src={images[0] || 'https://via.placeholder.com/200'}
+                    alt={product.name}
+                  />
+
+                  <h3>{product.name}</h3>
+                  <p>{product.brand}</p>
+                  <p>${product.price}</p>
+
+                  <div>
+                    <Link to={`/product/${product.id}`}>View</Link>
+                    <button onClick={() => addToCart(product.id)}>Cart</button>
+                    <button onClick={() => addToWishlist(product.id)}>Wishlist</button>
+                  </div>
+
+                </div>
+              );
+            })}
+
+          </div>
+        )}
+
       </div>
     </div>
   );
