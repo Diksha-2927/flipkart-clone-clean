@@ -5,6 +5,9 @@ import './ProductList.css';
 
 const ProductList = () => {
   const location = useLocation();
+
+  const API = process.env.REACT_APP_API_URL; // ✅ Render backend URL
+
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -16,18 +19,21 @@ const ProductList = () => {
     const params = new URLSearchParams(location.search);
     const query = params.get('search') || '';
     setSearchQuery(query);
+
     if (query) {
       searchProducts(query);
     } else {
       fetchProducts();
     }
+
     fetchCategories();
   }, [location.search]);
 
+  // ✅ GET PRODUCTS
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:5000/products');
+      const response = await axios.get(`${API}/products`);
       setProducts(response.data);
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -36,10 +42,11 @@ const ProductList = () => {
     }
   };
 
+  // ✅ SEARCH PRODUCTS
   const searchProducts = async (query) => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:5000/products/search/${query}`);
+      const response = await axios.get(`${API}/products/search/${query}`);
       setProducts(response.data);
     } catch (error) {
       console.error('Error searching products:', error);
@@ -48,18 +55,20 @@ const ProductList = () => {
     }
   };
 
+  // ✅ GET CATEGORIES
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/categories');
+      const response = await axios.get(`${API}/categories`);
       setCategories(response.data);
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
   };
 
+  // ✅ ADD TO WISHLIST
   const addToWishlist = async (productId) => {
     try {
-      await axios.post('http://localhost:5000/wishlist', { product_id: productId });
+      await axios.post(`${API}/wishlist`, { product_id: productId });
       alert('Added to wishlist!');
       window.dispatchEvent(new Event('wishlistUpdated'));
     } catch (error) {
@@ -67,9 +76,10 @@ const ProductList = () => {
     }
   };
 
+  // ✅ ADD TO CART
   const addToCart = async (productId) => {
     try {
-      await axios.post('http://localhost:5000/cart', { product_id: productId, quantity: 1 });
+      await axios.post(`${API}/cart`, { product_id: productId, quantity: 1 });
       alert('Added to cart!');
       window.dispatchEvent(new Event('cartUpdated'));
     } catch (error) {
@@ -97,24 +107,29 @@ const ProductList = () => {
 
   return (
     <div className="product-list">
+
       <section className="hero-banner">
         <div className="hero-copy">
           <p className="hero-tag">Flipkart Style E-commerce</p>
           <h1>Latest deals on top brands</h1>
           <p>Discover electronics, fashion, home essentials and more with fast delivery.</p>
         </div>
-        <div className="hero-image">
-          <img src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=900" alt="Shopping banner" />
-        </div>
       </section>
 
       <div className="main-content">
+
         <aside className="category-sidebar">
           <h2>Categories</h2>
-          <button className={selectedCategory === '' ? 'active' : ''} onClick={() => setSelectedCategory('')}>All</button>
-          {categories.map(category => (
+          <button
+            className={selectedCategory === '' ? 'active' : ''}
+            onClick={() => setSelectedCategory('')}
+          >
+            All
+          </button>
+
+          {categories.map((category, i) => (
             <button
-              key={category}
+              key={i}
               className={selectedCategory === category ? 'active' : ''}
               onClick={() => setSelectedCategory(category)}
             >
@@ -124,53 +139,93 @@ const ProductList = () => {
         </aside>
 
         <div className="product-main">
+
           <div className="filters">
             <input
               type="text"
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && (searchQuery.trim() ? searchProducts(searchQuery) : fetchProducts())}
+              onKeyDown={(e) =>
+                e.key === 'Enter' &&
+                (searchQuery.trim() ? searchProducts(searchQuery) : fetchProducts())
+              }
             />
-            <button onClick={() => (searchQuery.trim() ? searchProducts(searchQuery) : fetchProducts())}>Search</button>
+
+            <button
+              onClick={() =>
+                searchQuery.trim() ? searchProducts(searchQuery) : fetchProducts()
+              }
+            >
+              Search
+            </button>
+
             <select value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
               <option value="">Sort by</option>
               <option value="price-asc">Price: Low to High</option>
               <option value="price-desc">Price: High to Low</option>
               <option value="rating-desc">Top Rated</option>
             </select>
-            <button className="clear-btn" onClick={clearFilters}>Clear</button>
+
+            <button className="clear-btn" onClick={clearFilters}>
+              Clear
+            </button>
           </div>
-          <div className="results-count">Showing {filteredProducts.length} products</div>
+
+          <div className="results-count">
+            Showing {filteredProducts.length} products
+          </div>
 
           {loading ? (
             <div className="loading">Loading products...</div>
           ) : (
             <div className="products-grid">
+
               {filteredProducts.map(product => {
-                const images = product.image_urls ? JSON.parse(product.image_urls) : [];
+                let images = [];
+
+                try {
+                  images =
+                    typeof product.image_urls === 'string'
+                      ? JSON.parse(product.image_urls)
+                      : product.image_urls || [];
+                } catch (e) {
+                  images = [];
+                }
+
                 return (
                   <div key={product.id} className="product-card">
-                    <div className="product-badge-row">
-                      {product.offer && <span className="offer-badge">{product.offer}</span>}
-                      {product.rating && <span className="rating-badge">★ {product.rating}</span>}
-                    </div>
-                    <img src={images[0] || 'https://via.placeholder.com/200'} alt={product.name} />
+
+                    <img
+                      src={images[0] || 'https://via.placeholder.com/200'}
+                      alt={product.name}
+                    />
+
                     <div className="product-meta">
                       <p className="brand">{product.brand}</p>
                       <h3>{product.name}</h3>
                       <p className="price">${product.price}</p>
                     </div>
+
                     <div className="product-actions">
                       <Link to={`/product/${product.id}`}>View Details</Link>
-                      <button onClick={() => addToCart(product.id)}>Add to Cart</button>
-                      <button onClick={() => addToWishlist(product.id)}>Wishlist</button>
+
+                      <button onClick={() => addToCart(product.id)}>
+                        Add to Cart
+                      </button>
+
+                      <button onClick={() => addToWishlist(product.id)}>
+                        Wishlist
+                      </button>
                     </div>
+
                   </div>
                 );
               })}
+
             </div>
           )}
+
         </div>
       </div>
     </div>
