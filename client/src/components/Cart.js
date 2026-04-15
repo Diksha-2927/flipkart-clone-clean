@@ -27,7 +27,11 @@ const Cart = () => {
   const clearCart = async () => {
     try {
       setProcessing(true);
-      await Promise.all(cartItems.map((item) => axios.delete(`http://localhost:5000/cart/${item.id}`)));
+      await Promise.all(
+        cartItems.map((item) =>
+          axios.delete(`http://localhost:5000/cart/${item.id}`)
+        )
+      );
       fetchCart();
       window.dispatchEvent(new Event('cartUpdated'));
     } catch (error) {
@@ -37,15 +41,16 @@ const Cart = () => {
     }
   };
 
-  const handleQuantityChange = (id, value) => {
-    const quantity = parseInt(value, 10);
-    if (Number.isNaN(quantity) || quantity < 1) return;
-    updateQuantity(id, quantity);
-  };
-
   const updateQuantity = async (id, quantity) => {
+    const qty = parseInt(quantity, 10);
+
+    if (Number.isNaN(qty) || qty < 1) return;
+
     try {
-      await axios.put(`http://localhost:5000/cart/${id}`, { quantity });
+      await axios.put(`http://localhost:5000/cart/${id}`, {
+        quantity: qty,
+      });
+
       fetchCart();
       window.dispatchEvent(new Event('cartUpdated'));
     } catch (error) {
@@ -63,17 +68,31 @@ const Cart = () => {
     }
   };
 
-  const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const total = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 
   return (
     <div className="cart">
       <h1>Shopping Cart</h1>
+
       <div className="cart-toolbar">
-        <Link to="/" className="continue-link">Continue Shopping</Link>
+        <Link to="/" className="continue-link">
+          Continue Shopping
+        </Link>
+
         {cartItems.length > 0 && (
-          <button className="clear-btn" onClick={clearCart} disabled={processing}>Clear Cart</button>
+          <button
+            className="clear-btn"
+            onClick={clearCart}
+            disabled={processing}
+          >
+            Clear Cart
+          </button>
         )}
       </div>
+
       {loading ? (
         <p>Loading cart...</p>
       ) : cartItems.length === 0 ? (
@@ -81,24 +100,34 @@ const Cart = () => {
       ) : (
         <>
           <div className="cart-items">
-            {cartItems.map(item => (
+            {cartItems.map((item) => (
               <div key={item.id} className="cart-item">
                 <h3>{item.name}</h3>
                 <p>${item.price}</p>
+
                 <input
                   type="number"
                   value={item.quantity}
-                  onChange={(e) => updateQuantity(item.id, parseInt(e.target.value))}
                   min="1"
+                  onChange={(e) =>
+                    updateQuantity(item.id, e.target.value)
+                  }
                 />
-                <button onClick={() => removeItem(item.id)}>Remove</button>
+
+                <button onClick={() => removeItem(item.id)}>
+                  Remove
+                </button>
               </div>
             ))}
           </div>
+
           <div className="cart-summary">
             <h2>Total: ${total.toFixed(2)}</h2>
+
             <Link to="/checkout">
-              <button className="checkout-btn">Proceed to Checkout</button>
+              <button className="checkout-btn">
+                Proceed to Checkout
+              </button>
             </Link>
           </div>
         </>
