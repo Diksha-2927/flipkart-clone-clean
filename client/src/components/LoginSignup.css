@@ -1,0 +1,76 @@
+.login-signup-page {
+  min-height: calc(100vh - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f3f6;
+  padding: 40px 20px;
+}
+
+.login-card {
+  width: min(520px, 100%);
+  background: white;
+  border-radius: 24px;
+  padding: 34px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.12);
+}
+
+.login-card h1 {
+  margin-bottom: 8px;
+  font-size: 32px;
+  color: #162f67;
+}
+
+.login-card p {
+  margin-bottom: 28px;
+  color: #5b677d;
+  line-height: 1.6;
+}
+
+.login-card form {
+  display: grid;
+  gap: 18px;
+}
+
+.login-card label {
+  display: grid;
+  gap: 10px;
+  color: #3e4a63;
+  font-weight: 600;
+}
+
+.login-card input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid #dfe3eb;
+  font-size: 15px;
+  outline: none;
+}
+
+.primary-btn,
+.mode-switch {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary-btn {
+  background: #2874f0;
+  color: white;
+}
+
+.mode-switch {
+  background: transparent;
+  color: #2874f0;
+}
+
+.message {
+  margin-top: 10px;
+  color: #2f6f49;
+  font-weight: 600;
+}

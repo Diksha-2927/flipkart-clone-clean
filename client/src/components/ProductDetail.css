@@ -1,0 +1,169 @@
+.product-detail {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+  padding: 30px;
+  background-color: #f1f3f6;
+}
+
+.product-images,
+.product-info {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.1);
+}
+
+.product-images {
+  padding: 20px;
+}
+
+.product-images img {
+  width: 100%;
+  height: 420px;
+  object-fit: cover;
+  border-radius: 18px;
+}
+
+.thumbnails {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.thumbnails img {
+  width: 76px;
+  height: 76px;
+  object-fit: cover;
+  border-radius: 16px;
+  cursor: pointer;
+  opacity: 0.85;
+  border: 2px solid transparent;
+  transition: opacity 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+}
+
+.thumbnails img:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.thumbnails img.active-thumb {
+  opacity: 1;
+  border-color: #2874f0;
+}
+
+.product-info {
+  padding: 32px;
+}
+
+.detail-header-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.detail-offer,
+.detail-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.detail-offer {
+  background: #fff4e5;
+  color: #d35400;
+}
+
+.detail-rating {
+  background: #e6f7ff;
+  color: #005f99;
+}
+
+.product-info h1 {
+  font-size: 36px;
+  margin-bottom: 14px;
+}
+
+.brand {
+  font-size: 15px;
+  color: #666;
+  margin-bottom: 14px;
+}
+
+.price {
+  font-size: 32px;
+  color: #2874f0;
+  font-weight: 800;
+  margin-bottom: 20px;
+}
+
+.description {
+  margin-bottom: 22px;
+  line-height: 1.75;
+  color: #4a4a4a;
+}
+
+.stock {
+  margin-bottom: 24px;
+  font-weight: 600;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.add-to-cart,
+.buy-now,
+.wishlist-btn {
+  padding: 16px 24px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.add-to-cart:hover {
+  background: #e8890b;
+  transform: scale(1.05);
+}
+
+.buy-now:hover {
+  background: #d54a0a;
+  transform: scale(1.05);
+}
+
+.wishlist-btn:hover {
+  background: #008a5a;
+  transform: scale(1.05);
+}
+
+.product-loading {
+  padding: 40px;
+  text-align: center;
+  font-size: 18px;
+}
+
+@media (max-width: 940px) {
+  .product-detail {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .product-detail {
+    padding: 20px;
+  }
+
+  .product-images img {
+    height: 300px;
+  }
+}
